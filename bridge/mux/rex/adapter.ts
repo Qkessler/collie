@@ -146,12 +146,14 @@ function commandName(facts: RexBlockFacts | undefined): string | undefined {
 type RexCallBody = Readonly<Record<string, JsonValue>>;
 
 /**
- * The size a pane Collie creates is asked for. A block nobody owns keeps Rex's default of 80 by 24,
- * and an agent lays its screen out to that: on the phone, 80-column lines wrap a second time and
- * read as hard-wrapped, and 24 rows hold little. Rex applies a resize at once only while no client
- * owns the block, so a Rex app that attaches later still sizes the pane to its own window.
+ * The size a pane Collie creates is asked for: a phone held upright. A block nobody owns keeps Rex's
+ * default of 80 by 24, and an agent lays its screen out to whatever width it is given. Any line wider
+ * than the phone's mirror wraps a second time and reads as hard-wrapped, at 80 columns and at 200
+ * alike (seen on an iPhone 15, which shows 58 columns), so the width is the phone's. Rex applies a
+ * resize at once only while no client owns the block, so a Rex app that attaches later still sizes
+ * the pane to its own window.
  */
-const CREATED_PANE_SIZE = { columns: 200, rows: 60 } as const;
+const CREATED_PANE_SIZE = { columns: 56, rows: 60 } as const;
 
 interface RevisionEntry {
   revision: number;

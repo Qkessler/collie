@@ -197,9 +197,9 @@ Some things work differently on Rex:
 - "Show in terminal" is not offered: moving a Rex app to another session is not yet proven.
 - Panes cannot be renamed from the phone. Tabs and spaces can.
 - Pane history comes from the hooks. Without them the pane shows its screen only.
-- A pane Collie opens starts at 200 by 60, until a Rex app attaches and sizes it. A pane opened
-  from the CLI with no app attached keeps Rex's default of 80 by 24, which reads hard-wrapped on
-  the phone.
+- A pane Collie opens starts 56 columns wide, a phone held upright, until a Rex app attaches and
+  sizes it. A pane opened from the CLI with no app attached keeps Rex's default of 80 by 24, which
+  wraps twice on the phone and reads hard-wrapped.
 
 ### durable notes
 

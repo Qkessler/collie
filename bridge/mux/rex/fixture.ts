@@ -51,7 +51,7 @@ interface FakeApiBody {
   readonly block_id?: string;
   readonly label?: string;
   readonly method?: string;
-  readonly args?: { readonly data?: string };
+  readonly args?: { readonly data?: string; readonly columns?: number; readonly rows?: number };
   readonly event?: { readonly type?: string; readonly payload?: { readonly text?: string } };
 }
 
@@ -312,6 +312,7 @@ export class FakeRex implements RexExec {
       this.paint(block, data);
       return ok(JSON.stringify({ bytes_written: Buffer.byteLength(data, "utf8") }));
     }
+    if (method === "block.method" && body.method === "resize") return ok(JSON.stringify({}));
     if (method === "block.event") {
       if (body.event?.type !== "paste") return { code: 1, stdout: "", stderr: "Error: bad_request: unknown event\n" };
       const text = body.event.payload?.text ?? "";

@@ -139,6 +139,14 @@ const MUX_ENV_MARKERS: readonly MuxEnvMarker[] = [
     scopeOf: (raw) => raw,
   },
   {
+    // Rex exports the block's own id (`block:<uuid>`) and the server's address in the spelling the
+    // CLI prints in `rex whoami --json` (`unix:///run/user/<uid>/rex/server.sock`).
+    namespace: "rex",
+    paneVar: "REX_BLOCK",
+    scopeVar: "REX_SERVER",
+    scopeOf: (raw) => raw,
+  },
+  {
     namespace: "zellij",
     paneVar: "ZELLIJ_PANE_ID",
     // zellij pane ids are per-session integers, so the session name IS the addressing space.

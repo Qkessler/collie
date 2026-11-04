@@ -53,7 +53,8 @@ return { sessions = sessions }
 
 /**
  * Reads one block's screen and scrollback, and the screen's height so the viewport can be cut from
- * it. Arguments arrive as `rex.args`: `session_id`, `block_id` and `format` (`text` or `vt`).
+ * it. Arguments arrive as `rex.args`: `session_id`, `block_id`, `format` (`text` or `vt`) and
+ * `unwrap` (join the lines the terminal wrapped).
  *
  * An error is RETURNED rather than raised, so the adapter reads Rex's own words (`code=not_found`)
  * instead of a Lua traceback.
@@ -69,7 +70,7 @@ local formatted, formatError = rex.call("block.method", {
   session_id = sessionId,
   block_id = blockId,
   method = "format",
-  args = { format = rex.args.format, trim = true },
+  args = { format = rex.args.format, trim = true, unwrap = rex.args.unwrap == true },
 })
 if formatError then return { error = formatError } end
 return { rows = size.rows, content = formatted.content }

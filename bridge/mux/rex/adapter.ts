@@ -63,6 +63,7 @@ import {
 import { resolveRexBinary, SpawnRexExec, type RexExec, type RexRunResult } from "./exec.ts";
 import { REX_UNSENDABLE_KEYS, toRexKey } from "./keys.ts";
 import { REX_LOGO_SVG } from "./logo.ts";
+import { rexBeaconMatcher } from "./markers.ts";
 import {
   colourOnly,
   GRID_SCRIPT,
@@ -143,6 +144,14 @@ function commandName(facts: RexBlockFacts | undefined): string | undefined {
 
 /** The JSON object a `rex api call METHOD -` reads off stdin. */
 type RexCallBody = Readonly<Record<string, JsonValue>>;
+
+/**
+ * The size a pane Collie creates is asked for. A block nobody owns keeps Rex's default of 80 by 24,
+ * and an agent lays its screen out to that: on the phone, 80-column lines wrap a second time and
+ * read as hard-wrapped, and 24 rows hold little. Rex applies a resize at once only while no client
+ * owns the block, so a Rex app that attaches later still sizes the pane to its own window.
+ */
+const CREATED_PANE_SIZE = { columns: 200, rows: 60 } as const;
 
 interface RevisionEntry {
   revision: number;
@@ -229,7 +238,7 @@ export class RexMux implements MuxAdapter {
   }
 
   async readLogicalText(paneId: string, lines: number): Promise<MuxOutcome<string>> {
-    const read = await this.readScreen(paneId, "text");
+    const read = await this.readScreen(paneId, "text", true);
     if (!read.ok) return read;
     const all = read.value.lines;
     return muxOk(all.slice(Math.max(0, all.length - lines)).join("\n"));
@@ -298,7 +307,7 @@ export class RexMux implements MuxAdapter {
     } catch {
       return muxRefused("rex created a tab but its answer did not parse");
     }
-    return this.createdPane(parsed, space.spaceId, space.label, cwd);
+    return this.sizeCreated(this.createdPane(parsed, space.spaceId, space.label, cwd));
   }
 
   async renameTab(tabId: string, label: string): Promise<MuxAck> {
@@ -332,7 +341,7 @@ export class RexMux implements MuxAdapter {
       return muxRefused("rex created a session but its answer did not parse");
     }
     if (!parsed.session_id) return muxRefused("rex created a session but named none");
-    return this.createdPane(parsed.initial_windows?.[0] ?? {}, parsed.session_id, label, cwd);
+    return this.sizeCreated(this.createdPane(parsed.initial_windows?.[0] ?? {}, parsed.session_id, label, cwd));
   }
 
   async listWorktrees(_scope: MuxWorktreeScope): Promise<MuxOutcome<readonly MuxWorktree[]>> {
@@ -362,9 +371,10 @@ export class RexMux implements MuxAdapter {
   private async readScreen(
     paneId: string,
     format: "text" | "vt",
+    unwrap = false,
   ): Promise<MuxOutcome<{ lines: string[]; rows: number }>> {
     return this.inSessionOf(paneId, async (sessionId) => {
-      const args = JSON.stringify({ session_id: sessionId, block_id: paneId, format });
+      const args = JSON.stringify({ session_id: sessionId, block_id: paneId, format, unwrap });
       const ran = await this.attemptRun(["do", "-e", GRID_SCRIPT, "--args", args, "--json"]);
       if (!ran.ok) return ran;
       let read;
@@ -425,6 +435,21 @@ export class RexMux implements MuxAdapter {
     if (!window.window_id || !paneId) return muxRefused("rex created a pane but named none");
     this.remember(paneId, spaceId, window.window_id);
     return muxOk({ paneId, spaceId, spaceLabel, tabId: window.window_id, cwd: cwd ?? "" });
+  }
+
+  /**
+   * Asks for {@link CREATED_PANE_SIZE} on a pane this adapter just created. The answer is not the
+   * create's: a pane that cannot be resized is still a pane, so a refusal here changes nothing.
+   */
+  private async sizeCreated(created: MuxOutcome<MuxCreatedPane>): Promise<MuxOutcome<MuxCreatedPane>> {
+    if (!created.ok) return created;
+    await this.apiCall("block.method", {
+      session_id: created.value.spaceId,
+      block_id: created.value.paneId,
+      method: "resize",
+      args: { columns: CREATED_PANE_SIZE.columns, rows: CREATED_PANE_SIZE.rows },
+    });
+    return created;
   }
 
   private remember(paneId: string, sessionId: string, windowId: string): void {
@@ -577,6 +602,10 @@ export const rexMuxFactory: MuxAdapterFactory = {
   create(target: MuxTarget) {
     const binary = resolveRexBinary(target.options[REX_BINARY_OPTION] ?? "");
     return new RexMux(new SpawnRexExec(binary, target.endpoint, target.timeoutMs || 5000));
+  },
+  beaconMatcher(target: MuxTarget) {
+    const binary = resolveRexBinary(target.options[REX_BINARY_OPTION] ?? "");
+    return rexBeaconMatcher(REX_MUX, new SpawnRexExec(binary, target.endpoint, target.timeoutMs || 5000), target.endpoint);
   },
   describeTarget(endpoint: string) {
     return endpoint.trim() ? `server ${endpoint.trim()}` : "its default server";

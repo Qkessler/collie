@@ -1,7 +1,7 @@
 # Terminals
 
 These are the terminals Collie reads [sessions](sessions.md) from: Herdr, the Herdr core
-(`herdr-core`), tmux, zellij, tuios and Tern. Collie drives one terminal per install, and Herdr is
+(`herdr-core`), tmux, zellij, tuios, Tern and Rex. Collie drives one terminal per install, and Herdr is
 the default. This page covers pointing
 Collie at any of them, what each one can answer, and the beacons Collie uses to detect an agent in
 a pane. A durable agent with no screen is not a terminal, and [Durable agents](durable-agents.md) covers it.
@@ -15,10 +15,11 @@ Name the backend in `COLLIE_MUX`, point it at an endpoint, restart, and install 
 > **Experimental.** tmux and zellij (since 1.0) were tested on **tmux 3.6b** and **zellij 0.44.2**,
 > on a single host. tuios (since 1.15.0) was tested on **tuios 0.8.4**. The Herdr core (since 1.25.0)
 > was tested on **hc 0.1.14**, a 0.x preview. Tern was probed by its
-> contributor on **tern 0.4.5**, a closed beta that the maintainers cannot run.
+> contributor on **tern 0.4.5**, a closed beta that the maintainers cannot run. Rex was probed on
+> a **rex 0.0.1793632279** server, on a single host.
 > Herdr is the default and the primary supported backend. **Testers wanted:** open an issue on
 > [AltanS/collie](https://github.com/AltanS/collie/issues/new) titled `tmux: …`, `zellij: …`,
-> `tuios: …` or `tern: …`, with your multiplexer, version, OS, and what you saw.
+> `tuios: …`, `tern: …` or `rex: …`, with your multiplexer, version, OS, and what you saw.
 
 Name the multiplexer on the command line:
 
@@ -29,6 +30,7 @@ COLLIE_MUX=tmux collie start
 COLLIE_MUX=zellij collie start
 COLLIE_MUX=tuios collie start
 COLLIE_MUX=tern collie start
+COLLIE_MUX=rex collie start
 ```
 
 Set the endpoint when the default target is not the one you want:
@@ -47,7 +49,7 @@ COLLIE_MUX_ENDPOINT_ZELLIJ=collie-zellij
 
 | variable | value | what it means |
 | --- | --- | --- |
-| `COLLIE_MUX` | `herdr`, `herdr-core`, `tern`, `tmux`, `zellij` or `tuios` | which terminal this install drives |
+| `COLLIE_MUX` | `herdr`, `herdr-core`, `tern`, `rex`, `tmux`, `zellij` or `tuios` | which terminal this install drives |
 | `COLLIE_MUX_ENDPOINT_HERDR_CORE` | `/run/user/1000/herdr-core/work.sock` | the core's socket PATH |
 | `COLLIE_MUX_ENDPOINT_HERDR_CORE` | empty | the socket `hc` would dial: `HC_SOCKET`, else `$XDG_RUNTIME_DIR/herdr-core/<session>.sock`, else `/run/user/<uid>/herdr-core/<session>.sock` when that directory exists, else `${XDG_STATE_HOME:-~/.local/state}/herdr-core/<session>/<session>.sock` (macOS); the session is `HC_SESSION` or `default` |
 | `COLLIE_MUX_ENDPOINT_TMUX` | `/run/user/1000/collie-tmux.sock` | a socket PATH (`tmux -S`), because it has a `/` |
@@ -60,6 +62,9 @@ COLLIE_MUX_ENDPOINT_ZELLIJ=collie-zellij
 | `COLLIE_MUX_ENDPOINT_TERN` | `/run/user/1000/tern/daemon.sock` | the Tern daemon's socket PATH |
 | `COLLIE_MUX_ENDPOINT_TERN` | empty | `$XDG_RUNTIME_DIR/tern/daemon.sock`, else `/tmp/tern-<uid>/daemon.sock` |
 | `COLLIE_TERN_BIN` | `/home/you/.local/opt/tern/tern` | only if tern sits somewhere unusual |
+| `COLLIE_MUX_ENDPOINT_REX` | `/run/user/1000/rex/server.sock` | the Rex server, passed to `rex -S` |
+| `COLLIE_MUX_ENDPOINT_REX` | empty | the server `rex` itself finds |
+| `COLLIE_REX_BIN` | `/usr/bin/rex` | only if rex sits somewhere unusual |
 | `COLLIE_TMUX_BIN` | `/usr/bin/tmux` | only if tmux sits somewhere unusual |
 | `COLLIE_ZELLIJ_BIN` | `/home/you/.local/bin/zellij` | only if zellij sits somewhere unusual |
 
@@ -164,6 +169,29 @@ Tern reports lifecycle events via `tern events`, enabling immediate topology cha
 "Show in terminal" moves your Tern window to the pane's Tern session and tab and focuses its block. A tab or a Tern session that Collie creates opens in the background and does not move your window.
 
 Collie does not detect Tern on its own, as it does not detect tuios: name it with `COLLIE_MUX=tern`. Typed text longer than 128 KiB is refused, because it travels as one command-line argument.
+
+### rex notes
+
+Point Collie at Rex:
+
+```bash
+COLLIE_MUX=rex collie start
+```
+
+Rex reports agents itself, so it needs no beacon hooks. An agent that reports its state to the
+terminal shows with that state; Claude Code does this in Rex out of the box.
+
+Collie shows each Rex session as a space, each window as a tab, and each block as a pane. A pane
+shows as focused only while a Rex app is attached to its session.
+
+Collie never starts a Rex server. With none running, the bridge shows as disconnected until one
+starts.
+
+Some things work differently on Rex:
+
+- "Show in terminal" is not offered: moving a Rex app to another session is not yet proven.
+- Panes cannot be renamed from the phone. Tabs and spaces can.
+- Pane history is absent: Rex does not say which conversation an agent runs.
 
 ### durable notes
 

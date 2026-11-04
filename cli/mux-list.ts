@@ -1,8 +1,11 @@
+import { isAbsolute } from "node:path";
 import { HERDR_MUX } from "../bridge/mux/herdr/adapter.ts";
 import { HERDR_CORE_MUX, herdrCoreSocketFor } from "../bridge/mux/herdr-core/adapter.ts";
 import { HC_GENERATION, readHcCore, type HcCoreReading } from "../bridge/mux/herdr-core/client.ts";
 import { DURABLE_MUX } from "../bridge/mux/durable/adapter.ts";
 import { buildMuxRegistry, muxEndpointVar, muxNames } from "../bridge/mux/registry.ts";
+import { REX_MUX } from "../bridge/mux/rex/adapter.ts";
+import { defaultRexSocket, resolveRexBinary, rexBinaryCandidates } from "../bridge/mux/rex/exec.ts";
 import { TERN_MUX } from "../bridge/mux/tern/adapter.ts";
 import { defaultTernSocket, resolveTernBinary, ternBinaryCandidates } from "../bridge/mux/tern/exec.ts";
 import { TMUX_MUX } from "../bridge/mux/tmux/adapter.ts";
@@ -172,6 +175,15 @@ const probeTern: Probe = async (deps) => {
   return binary === null ? absent() : absent(`${binary}, no daemon socket at ${socket}`);
 };
 
+const probeRex: Probe = async (deps) => {
+  const uid = deps.uid ?? process.getuid?.() ?? 1000;
+  const named = (deps.ctx.env[muxEndpointVar(REX_MUX)] ?? "").trim().replace(/^unix:\/\//u, "");
+  const socket = isAbsolute(named) ? named : defaultRexSocket(deps.ctx.env.XDG_RUNTIME_DIR, uid);
+  if (deps.files.exists(socket)) return { present: true, answering: null, where: socket, version: null };
+  const binary = resolveRexBinary((deps.ctx.env.COLLIE_REX_BIN ?? "").trim(), (path) => deps.files.exists(path), rexBinaryCandidates(deps.ctx.home));
+  return binary === null ? absent() : absent(`${binary}, no server socket at ${socket}`);
+};
+
 const probeTuios: Probe = async (deps) => {
   const uid = deps.uid ?? process.getuid?.() ?? 1000;
   const named = (deps.ctx.env[muxEndpointVar(TUIOS_MUX)] ?? "").trim();
@@ -187,6 +199,7 @@ const PROBES: ReadonlyMap<string, Probe> = new Map([
   [ZELLIJ_MUX, probeZellij],
   [TERN_MUX, probeTern],
   [TUIOS_MUX, probeTuios],
+  [REX_MUX, probeRex],
 ]);
 
 /** Shown for `durable`, which is not a terminal and has nothing to look for. */

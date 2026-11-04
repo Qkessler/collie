@@ -979,6 +979,7 @@ const CONFIG_KEYS = {
   tmuxBin: true,
   zellijBin: true,
   ternBin: true,
+  rexBin: true,
   socketPath: true,
   dialMode: true,
   auditContent: true,
@@ -1067,6 +1068,7 @@ describe("solo zero-tax — config", () => {
       "quickRepliesFile",
       "readLines",
       "redact",
+      "rexBin",
       "sendProtocol",
       "sent",
       "skipServe",
@@ -1112,7 +1114,7 @@ describe("solo zero-tax — config", () => {
   // Read from `bridge/config-schema.ts` rather than by grepping `config.ts`'s source, because the
   // schema is now the single declaration of what every setting is (ADR 0040). The rows that carry a
   // `configField` are exactly the settings `loadConfig` resolves, which is the list §11 pins. A
-  // CONFIG FILE ADDS NO ENV KEY, so this list is the 38 names it has always been plus `COLLIE_BASE_PATH` (ADR 0052), `COLLIE_MUSE_ROOT`, `COLLIE_OPENCLAW_ROOT` (#401), `COLLIE_KIRO_ROOT`, `COLLIE_DSH_ROOT`, the two `COLLIE_ACCESS_*` keys (ADR 0081) `COLLIE_SENT` (ADR 0107) and `COLLIE_ACCOUNT_WINDOWS` (ADR 0118) — the two
+  // CONFIG FILE ADDS NO ENV KEY, so this list is the 38 names it has always been plus `COLLIE_BASE_PATH` (ADR 0052), `COLLIE_MUSE_ROOT`, `COLLIE_OPENCLAW_ROOT` (#401), `COLLIE_KIRO_ROOT`, `COLLIE_DSH_ROOT`, `COLLIE_REX_BIN`, the two `COLLIE_ACCESS_*` keys (ADR 0081) `COLLIE_SENT` (ADR 0107) and `COLLIE_ACCOUNT_WINDOWS` (ADR 0118) — the two
   // `COLLIE_MUX_ENDPOINT_<NAME>` rows collapse back to the prefix the old grep saw, because the env
   // name is built at the call site and the file key must not be.
   test("the schema names exactly today's COLLIE_* env keys — no crew enrollment key", () => {
@@ -1158,6 +1160,7 @@ describe("solo zero-tax — config", () => {
       "COLLIE_PUBLIC_HOSTS",
       "COLLIE_READ_LINES",
       "COLLIE_REDACT",
+      "COLLIE_REX_BIN",
       "COLLIE_SEND_PROTOCOL",
       "COLLIE_SENT",
       "COLLIE_SKIP_SERVE",

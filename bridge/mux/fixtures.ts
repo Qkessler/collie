@@ -37,6 +37,7 @@ import { herdrCoreBeaconMatcher } from "./herdr-core/markers.ts";
 import { tmuxMuxFactory } from "./tmux/adapter.ts";
 import { FakeTmux, FAKE_TMUX_SOCKET, tmuxConformanceFixture, tmuxWorld } from "./tmux/fixture.ts";
 import { tmuxBeaconMatcher } from "./tmux/markers.ts";
+import { rexConformanceFixture } from "./rex/fixture.ts";
 import { ternMuxFactory } from "./tern/adapter.ts";
 import { FakeTern, ternConformanceFixture, ternWorld } from "./tern/fixture.ts";
 import { ternBeaconMatcher } from "./tern/markers.ts";
@@ -183,6 +184,7 @@ export const MUX_CONFORMANCE_FIXTURES: readonly MuxConformanceFixture[] = [
   tmuxConformanceFixture,
   zellijConformanceFixture,
   tuiosConformanceFixture,
+  rexConformanceFixture,
   durableConformanceFixture,
   durableHttpConformanceFixture,
   herdrCoreConformanceFixture,

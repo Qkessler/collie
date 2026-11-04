@@ -354,7 +354,7 @@ export const CONFIG_SETTINGS: readonly ConfigSetting[] = [
     section: "mux",
     kind: "string",
     default: DEFAULT_MUX,
-    doc: "Which multiplexer this collie mirrors: herdr, tern, tmux, zellij, tuios or durable.",
+    doc: "Which multiplexer this collie mirrors: herdr, tern, tmux, zellij, tuios, rex or durable.",
     configField: "mux",
   },
   {
@@ -395,6 +395,15 @@ export const CONFIG_SETTINGS: readonly ConfigSetting[] = [
     configField: "ternBin",
   },
   {
+    key: "rex_bin",
+    env: "COLLIE_REX_BIN",
+    section: "mux",
+    kind: "string",
+    default: "",
+    doc: "Absolute path to the rex binary, when it sits somewhere unusual.",
+    configField: "rexBin",
+  },
+  {
     key: "zellij_bin",
     env: "COLLIE_ZELLIJ_BIN",
     section: "mux",
@@ -428,6 +437,15 @@ export const CONFIG_SETTINGS: readonly ConfigSetting[] = [
     kind: "string",
     default: "",
     doc: "The tern daemon socket to drive. Empty takes the socket tern itself uses.",
+    configField: "muxEndpoint",
+  },
+  {
+    key: "mux_endpoint_rex",
+    env: "COLLIE_MUX_ENDPOINT_REX",
+    section: "mux",
+    kind: "string",
+    default: "",
+    doc: "The Rex server to drive: a socket path, an address or a host label. Empty takes rex's own.",
     configField: "muxEndpoint",
   },
   {

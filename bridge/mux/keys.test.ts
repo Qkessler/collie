@@ -12,6 +12,7 @@ import {
   MUX_NAMED_KEYS,
   parseMuxKey,
 } from "./keys.ts";
+import { toRexKey } from "./rex/keys.ts";
 import { toTernKey } from "./tern/keys.ts";
 import { toTmuxKey } from "./tmux/keys.ts";
 import { toTuiosKey } from "./tuios/keys.ts";
@@ -109,6 +110,7 @@ describe("ctrl+Enter, the chord that needs an extended keyboard encoding", () =>
     ["zellij", toZellijKey],
     ["tuios", toTuiosKey],
     ["tern", toTernKey],
+    ["rex", toRexKey],
   ])("%s refuses it rather than sending a plain Enter", (_mux, translate) => {
     expect(translate("ctrl+Enter")).toEqual({ ok: false, reason: "extended" });
     expect(translate("Enter").ok).toBe(true);
